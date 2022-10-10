@@ -1,94 +1,56 @@
-
 import Head from 'next/head';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
+import CreateForm from '../components/CreateForm';
+import ReportTable from '../components/ReportTable';
+import SignIn from '../components/Signin';
 import { useState } from 'react';
+import { useAuth } from '../contexts/auth';
+import userResource from '../hooks/userResource';
 
 export default function Home() {
-  const [str, setStr] = useState('{}');
+    const [stands, setStands] = useState('');
+    // const { user, login, logout } = useAuth();
+    const {resources, loading, createResource, deleteResource } = userResource();
 
-  function createCookieFormHandler(event) {
-    event.preventDefault();
-    stringifyContent(event.target.location.value, parseInt(event.target.min.value), parseInt(event.target.max.value), parseInt(event.target.avg.value));
-    event.target.reset();
-  }
+    function createStandHandler(event) {
+        event.preventDefault();
+        const standObj = {
+            id: stands.length + 1,
+            location: event.target.location.value,
+            minCustomers: parseInt(event.target.min.value),
+            maxCustomers: parseInt(event.target.max.value),
+            avgCookies: parseInt(event.target.avg.value),
+            hourlySales: [48, 42, 30, 24, 42, 24, 36, 42, 42, 48, 36, 42, 24, 36]
+        };
 
-  function stringifyContent(location, min, max, avg) {
-    setStr(JSON.stringify({location, min, max, avg}))
-  }
+        setStands([...stands, standObj]);
+        event.target.reset();
+    }
 
+    function handleClick(event) {
+        event.preventDefault();
+        login(event.target.username.value, event.target.password.value)
+    }
 
-  return (
-    <div>
-      <Head>
-        <title>cookie-stand-admin</title>
-      </Head>
-      <Header />
-      <Main  onSubmit={createCookieFormHandler} stringified = {str}/>
-      <Footer />
-    </div>
-  );
-}
-
-function Header() {
-  return (
-  <header className='bg-orange-100 text-black text-4xl font-serif font-semibold p-4'>
-    <h1>Cookie Stand Admin</h1>
-  </header>
-  );
-}
-
-function Main(props) {
-  return (
-  <main className='text-1xl text-center pb-10 pt-4'>
-    <CookieForm onSubmit={props.onSubmit} />
-    <ReportTable />
-    <TableDataJSON stringified={props.stringified} />
-  </main>
-  );
-}
-
-function Footer() {
-  return (
-  <footer className='bg-orange-100 text-slate-800 p-4'>
-    <p>&copy;2022</p>
-  </footer>
-  );
-}
-
-function CookieForm(props) {
-  return (
-
-    <form onSubmit={props.onSubmit} className='rounded-lg  w-4/5 p-8 bg-stone-400 ml-52 mt-5 shadow-2xl'>
-      <h1 className='text-center text-3xl mb-5'>Create Cookie Stand</h1>
-      <label className='flex'>
-        Location:
-        <input name='location' className='flex-auto ml-1' type="text" placeholder='Type in Location' required />
-      </label>
-
-      <label>
-        Min Customer per Hour
-        <input name='min' className='flex-row ml-2 mt-3' type="text" required />
-      </label>
-
-      <label className='ml-2'>
-        Max Customer per Hour
-        <input name='max' className='flex-row ml-2 mt-3' type="text" required />
-      </label>
-
-      <label className='ml-2'>
-        Average Cookies per Sale
-        <input name='avg' className=' ml-2 mt-3' type="text" required />
-      </label>
-      <button type='submit' className='ml-4 mt-4  px-10 py-5 bg-red-300 rounded-full shadow-lg shadow-red-500/50'>Create
-      </button>
-    </form>
-  );
-}
-
-function ReportTable() {
-  return <p className='mt-5'>Report Table Coming Soon...</p>
-
-}
-
-function TableDataJSON(props) {
-  return <p>{props.stringified}</p>
+    return (
+        <div>
+            <Head>
+                <title>Cookie Stand Admin</title>
+            </Head>
+            <Header logout={logout} />
+            {user ? (
+                <main className='bg-emerald-50 p-8 flex flex-col items-center space-y-8'>
+                    <CreateForm onSubmit={createStandHandler} />
+                    <ReportTable stands={stands} />
+                </main>
+            ) : (
+                <main>
+                    <SignIn handleClick={handleClick} />
+                </main>
+            )
+            }
+            <Footer stands={stands.length} />
+        </div>
+    );
 }
